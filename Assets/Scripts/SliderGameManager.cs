@@ -373,7 +373,14 @@ public int gridSize = 8;
 		{
 			foreach (FoodItem foodItem in longestMatch)
 			{
-				foodItem.select();
+				try{
+					foodItem.select();
+				} catch (Exception ex){
+					print("### foodItem uuid : " + foodItem.id);
+					print("### ex message : " + ex.Message);
+					print("### ex stack trace : " + ex.StackTrace);
+					Debug.Break();
+				}
 			}
 		}
 	}
@@ -427,6 +434,8 @@ public int gridSize = 8;
 
 		if (columnToReplenishSet.Count > 0){
 			Invoke("replenishFoodItem", secondsDelay);
+		} else {
+			highlightScoreable();
 		}
 	}
 
@@ -437,11 +446,11 @@ public int gridSize = 8;
 		{
 			if (foodItemArrayByXColumMap[x][y] == null){
 				if (y == gridSize - 1){
-					print("### add new item to top");
+					//print("### add new item to top");
 					GameObject randomizedPrefab = prefabMap[UnityEngine.Random.Range(0, prefabList.Count)];
 					addItemInGrid(x, y, randomizedPrefab);
 				} else if (foodItemArrayByXColumMap[x][y+1] != null) {
-					print("### move item ["+x+"]["+(y+1)+"] down to ["+x+"]["+y+"]");
+					//print("### move item ["+x+"]["+(y+1)+"] down to ["+x+"]["+y+"]");
 					FoodItem aboveFoodItem = foodItemArrayByXColumMap[x][y+1];
 					moveItemToLocation(aboveFoodItem, x, y);
 				}

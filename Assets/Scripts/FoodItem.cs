@@ -38,6 +38,12 @@ public class FoodItem : MonoBehaviour
 	public void toggleSelection(){
 		isSelected = !isSelected;
 		//print(this.gameObject.name + " isSelected is " + isSelected.ToString());
+		
+		//workaround TODO revisit check for race condition
+		if (renderer == null){
+			renderer = this.GetComponent<SpriteRenderer>();
+		}
+		
 		if (isSelected){
 			renderer.sprite = selectedSprite;
 			if (gameManager != null){

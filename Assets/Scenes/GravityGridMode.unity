@@ -245,10 +245,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a196e7702f51a714c98fb4c895627799, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridSize: 15
+  gridSize: 10
   camera: {fileID: 519420031}
   startingPoint: {x: 0, y: 0}
-  xySpan: 8
+  xySpan: 6
   coordinateMax: 4
   coordinateMin: -3
   minSelectSize: 3
