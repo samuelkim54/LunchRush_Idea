@@ -210,7 +210,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 339966855}
-  - component: {fileID: 339966854}
+  - component: {fileID: 339966856}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -218,7 +218,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &339966854
+--- !u!4 &339966855
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 339966853}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &339966856
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -227,7 +242,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 339966853}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eebf2c639e40c7e4b8fad1f232dc188a, type: 3}
+  m_Script: {fileID: 11500000, guid: a196e7702f51a714c98fb4c895627799, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   gridSize: 15
@@ -244,22 +259,10 @@ MonoBehaviour:
   - {fileID: 5679512119555372992, guid: d9021793ba2ed5844b74d7bb4ee761d5, type: 3}
   - {fileID: 3611893506824498080, guid: 7d11d38942289a346b602c460f5a901f, type: 3}
   - {fileID: 7395319699491378219, guid: d2a1f77a39c386049a6c2c9ec6bebfdb, type: 3}
+  leftButtonPrefab: {fileID: 4529681009555412684, guid: d765ca7a59744484dbba5cb3116743e2, type: 3}
+  rightButtonPrefab: {fileID: 4529681009555412684, guid: 7a3bdd39c7ad19f4ab43f52a403a3f9a, type: 3}
   scoreSystemType: 0
---- !u!4 &339966855
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 339966853}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  rightPixelPadding: -50
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -673,12 +676,10 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Select food item with left click
+  m_Text: 'Slides rows to align food item
 
-    Press space to confirm selection
-
-    To
-    score, select 3 or more of the same ingredients
+    To score, select 3 or more of the
+    same ingredients
 
     Have fun <3'
 --- !u!222 &2106667788

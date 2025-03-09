@@ -8,4 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/BasicScoring.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/GravityGridMode.unity
+    guid: 5dc857b48fc49b14193ddec98ca005a0
   m_configObjects: {}

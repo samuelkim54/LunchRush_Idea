@@ -11,6 +11,7 @@ public class FoodItem : MonoBehaviour
 	public int y; //red/write from gameManager
 	public Sprite idleSprite;
 	public Sprite selectedSprite;
+	public Sprite deleteSprite;
 	private GameManager gameManager;
 
 	private Boolean isSelected = false;
@@ -39,12 +40,32 @@ public class FoodItem : MonoBehaviour
 		//print(this.gameObject.name + " isSelected is " + isSelected.ToString());
 		if (isSelected){
 			renderer.sprite = selectedSprite;
-			gameManager.selectFood(gameObject);
-			gameManager.selectFood(this.id);
+			if (gameManager != null){
+				gameManager.selectFood(gameObject);
+				gameManager.selectFood(this.id);
+			}
 		} else {
 			renderer.sprite = idleSprite;
-			gameManager.deselectFood(gameObject);
-			gameManager.deselectFood(this.id);
+			if (gameManager != null){
+				gameManager.deselectFood(gameObject);
+				gameManager.deselectFood(this.id);
+			}
 		}
+	}
+
+	public void deselect(){
+		if (isSelected == true){
+			toggleSelection();
+		}
+	}
+
+	public void select(){
+		if (isSelected == false){
+			toggleSelection();
+		}
+	}
+
+	public void markForDeletion(){
+		renderer.sprite = deleteSprite;
 	}
 }

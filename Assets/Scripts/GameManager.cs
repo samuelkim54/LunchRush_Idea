@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
 
 	private IScore scoreSystem;
 	private float coordinateZ = 5; //doesn't matter
+	private float rightPixelPadding = -50f;
 
 	private Dictionary<int, GameObject> prefabMap = new Dictionary<int, GameObject>();
 	private List<GameObject> selectedFoodList = new List<GameObject>();
@@ -34,6 +35,7 @@ public class GameManager : MonoBehaviour
 	// Start is called before the first frame update
 	void Start()
 	{
+		GetVisibleWorldSize();
 		setPrefabMap();
 		setScoreSystem();
 		computeStartingPoint();
@@ -57,6 +59,24 @@ public class GameManager : MonoBehaviour
 			}
 			displayScore();
 		}
+	}
+
+	//DEBUG ONLY
+	private void GetVisibleWorldSize()
+	{
+		Camera cam = Camera.main;
+		float height = cam.orthographicSize * 2;
+		float width = height * cam.aspect;
+
+		Debug.Log($"Visible World Size → Width: {width}, Height: {height}");
+	}
+
+	//DEBUG ONLY
+	private  float getWorldUnitWidth(){
+		Camera cam = Camera.main;
+		float height = cam.orthographicSize * 2;
+		float width = height * cam.aspect;
+		return width;
 	}
 
 	private void setPrefabMap(){
@@ -128,14 +148,20 @@ public class GameManager : MonoBehaviour
 		foodItemMap.Add(foodItemScript.id, foodItemScript);
 	}
 
-	private float pixelToWorldUnit(){
-		return (camera.orthographicSize * 2f)/Screen.height;
+	private float pixelsToWorldUnits(float pixels)
+	{
+		Camera cam = Camera.main;
+		float worldHeight = cam.orthographicSize * 2f; // Total world units visible in height
+		float pixelsPerUnit = worldHeight / Screen.height; // Convert pixels to world units
+
+		return pixels * pixelsPerUnit;
 	}
 
+
 	private void computeStartingPoint(){
-		float worldUnit = pixelToWorldUnit();
 		float y = -xySpan/2f;
 		startingPoint.y = y;
+		startingPoint.x = pixelsToWorldUnits(rightPixelPadding);
 	}
 
 	private Vector3 convertGridToVector3Position(int gridX, int gridY){
