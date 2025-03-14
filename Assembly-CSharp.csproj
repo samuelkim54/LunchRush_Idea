@@ -65,13 +65,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\DirectionEnum.cs" />
+    <Compile Include="Assets\Scripts\MenuGameManager.cs" />
     <Compile Include="Assets\Scripts\FoodTypeEnum.cs" />
     <Compile Include="Assets\Scripts\FoodItem.cs" />
     <Compile Include="Assets\Scripts\ScoreEnum.cs" />
     <Compile Include="Assets\Scripts\IScore.cs" />
+    <Compile Include="Assets\Scripts\FoodMenuEnum.cs" />
     <Compile Include="Assets\Scripts\SliderGameManager.cs" />
     <Compile Include="Assets\Scripts\BasicScore.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
+    <Compile Include="Assets\Scripts\FoodMenu.cs" />
     <Compile Include="Assets\Scripts\ShiftButton.cs" />
   </ItemGroup>
   <ItemGroup>

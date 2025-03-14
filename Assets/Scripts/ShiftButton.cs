@@ -11,11 +11,13 @@ public class ShiftButton : MonoBehaviour
 	public DirectionEnum direction;
 	private int yShift;
 	private SliderGameManager gameManager;
+	private MenuGameManager menuGameManager;
 
 	// Start is called before the first frame update
 	void Start()
 	{
 		gameManager = GameObject.FindObjectOfType<SliderGameManager>();
+		menuGameManager = GameObject.FindObjectOfType<MenuGameManager>();
 		if (direction == DirectionEnum.LEFT){
 			yShift = -1;
 		} else if (direction == DirectionEnum.RIGHT){
@@ -31,6 +33,11 @@ public class ShiftButton : MonoBehaviour
 
 	void OnMouseDown()
 	{
-		gameManager.shiftRow(y, yShift);
+		if (gameManager != null){
+			gameManager.shiftRow(y, yShift);
+		}
+		if (menuGameManager != null){
+			menuGameManager.shiftRow(y, yShift);
+		}
 	}
 }

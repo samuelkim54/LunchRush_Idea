@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Unity.Mathematics;
+using Unity.VisualScripting.Antlr3.Runtime;
+using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.Experimental.AI;
 using UnityEngine.UI;
 
-public class SliderGameManager : MonoBehaviour
+public class MenuGameManager : MonoBehaviour
 {
 	public int gridSize = 8;
 
@@ -20,6 +22,9 @@ public class SliderGameManager : MonoBehaviour
 	public float coordinateMin = -3f; //TODEPRECATE
 	public int minSelectSize = 3;
 	public Text scoreDisplay;
+	public float timeLimitInSeconds = 90f;
+	public Text timeDispay;
+	public Text gameOverDisplay;
 	public List<GameObject> prefabList = new List<GameObject>();
 	public GameObject leftButtonPrefab;
 	public GameObject rightButtonPrefab;
@@ -27,8 +32,9 @@ public class SliderGameManager : MonoBehaviour
 	public float rightPixelPadding = -50f;
 
 	private IScore scoreSystem;
+	private FoodMenu foodMenu = new FoodMenu();
 	private float coordinateZ = 5; //doesn't matter
-	private float secondsDelay = 1f;
+	public float secondsDelay = 1f;
 	private HashSet<int> columnToReplenishSet = new HashSet<int>();
 
 	private Dictionary<int, GameObject> prefabMap = new Dictionary<int, GameObject>();
@@ -41,12 +47,16 @@ public class SliderGameManager : MonoBehaviour
 	private Dictionary<int, List<FoodItem>> foodItemByXColumnMap = new Dictionary<int, List<FoodItem>>();
 	private Dictionary<int, FoodItem[]> foodItemArrayByXColumMap = new Dictionary<int, FoodItem[]>();
 	private Dictionary<int, List<FoodItem>> foodItemByAscendingDiagonalMap = new Dictionary<int, List<FoodItem>>();
+	private Dictionary<int, FoodItem[]> foodItemArrayByAscendingDiagonalMap = new Dictionary<int, FoodItem[]>();
 	private Dictionary<int, List<FoodItem>> foodItemByDescendingDiagonalMap = new Dictionary<int, List<FoodItem>>();
+	private Dictionary<int, FoodItem[]> foodItemArrayByDescendingDiagonalMap = new Dictionary<int, FoodItem[]>();
 	
 	//collection of all column/both diagonals of matched list
 	private List<List<FoodItem>> allLongestMatchList = new List<List<FoodItem>>();
 	
 	private int score = 0;
+	private float elapsedTime = 0f;
+	private bool isGameOver = false;
 
 	// Start is called before the first frame update
 	void Start()
@@ -58,11 +68,20 @@ public class SliderGameManager : MonoBehaviour
 		computeStartingPoint();
 		generateIntitalGrid();
 		generateShiftButton();
+
+		//DEBUG
+		printFoodItemArrays("Ascending after start", foodItemArrayByAscendingDiagonalMap);
+		printFoodItemArrays("Descending after start", foodItemArrayByDescendingDiagonalMap);
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
+		if (hasTimeRunOut()){
+			isGameOver = true;
+			gameOverDisplay.enabled = isGameOver;
+			Time.timeScale = 0f;
+		}
 		//not doing scoring
 		/*
 		if (Input.GetKeyDown(KeyCode.Space)){
@@ -82,17 +101,24 @@ public class SliderGameManager : MonoBehaviour
 		*/
 	}
 
-	//DEBUG ONLY
-	private void GetVisibleWorldSize()
-	{
-		Camera cam = Camera.main;
-		float height = cam.orthographicSize * 2;
-		float width = height * cam.aspect;
-
-		Debug.Log($"Visible World Size → Width: {width}, Height: {height}");
+	private bool hasTimeRunOut(){
+		bool hasTimeRunOut = false;
+		elapsedTime += Time.deltaTime;
+		float remainingTime = timeLimitInSeconds - elapsedTime;
+		String minute = ((int)remainingTime / 60).ToString("D2");
+		String seconds = ((int)remainingTime % 60).ToString("D2");
+		displayTime(minute, seconds);
+		if (remainingTime <= 0){
+			hasTimeRunOut = true;
+		}
+		return hasTimeRunOut;
 	}
 
-	//DEBUG ONLY
+	private void displayTime(String minute, String seconds){
+		timeDispay.text = minute + ":" + seconds; 
+	}
+
+	
 	private  float getWorldUnitWidth(){
 		Camera cam = Camera.main;
 		float height = cam.orthographicSize * 2;
@@ -187,6 +213,7 @@ public class SliderGameManager : MonoBehaviour
 		foodItem.id = Guid.NewGuid().ToString();
 		foodItem.x = gridX;
 		foodItem.y = gridY;
+		foodItem.gridSize = gridSize;
 		//IDEA refactor perhaps
 		foodMap.Add(foodItem.id, food);
 		foodItemMap.Add(foodItem.id, foodItem);
@@ -210,6 +237,9 @@ public class SliderGameManager : MonoBehaviour
 		for (int y = 0; y < gridSize; y++){
 			foodItemByYRowMap.Add(y, new List<FoodItem>());
 		}
+
+		Dictionary<int, int> ascendingArrayCounter = new Dictionary<int, int>();
+		Dictionary<int, int> descendingArrayCounter = new Dictionary<int, int>();
 		for (int x = 0; x < gridSize; x++){
 			for (int y = 0; y < gridSize; y++){
 				int ascendingDiagonal = y-x;
@@ -220,7 +250,28 @@ public class SliderGameManager : MonoBehaviour
 				if (!foodItemByDescendingDiagonalMap.ContainsKey(descendingDiagonal)){
 					foodItemByDescendingDiagonalMap.Add(descendingDiagonal, new List<FoodItem>());
 				}
+				if (!ascendingArrayCounter.ContainsKey(ascendingDiagonal)){
+					ascendingArrayCounter.Add(ascendingDiagonal, 0);
+				}
+				ascendingArrayCounter[ascendingDiagonal]++;
+				if (!descendingArrayCounter.ContainsKey(descendingDiagonal)){
+					descendingArrayCounter.Add(descendingDiagonal, 0);
+				}
+				descendingArrayCounter[descendingDiagonal]++;
 			}
+		}
+
+		foreach (int ascendingDiagonal in ascendingArrayCounter.Keys)
+		{
+			int arraySize = ascendingArrayCounter[ascendingDiagonal];
+			foodItemArrayByAscendingDiagonalMap.Add(ascendingDiagonal, new FoodItem[arraySize]);
+			print("#### ascending key["+ascendingDiagonal+"] size is " + arraySize);
+		}
+		foreach (int descendingDiagonal in descendingArrayCounter.Keys)
+		{
+			int arraySize = descendingArrayCounter[descendingDiagonal];
+			foodItemArrayByDescendingDiagonalMap.Add(descendingDiagonal, new FoodItem[arraySize]);
+			print("#### ascending key["+descendingDiagonal+"] size is " + arraySize);
 		}
 	}
 
@@ -228,21 +279,30 @@ public class SliderGameManager : MonoBehaviour
 		foodItemByYRowMap[foodItem.y].Add(foodItem);
 		foodItemByXColumnMap[foodItem.x].Add(foodItem);
 		foodItemArrayByXColumMap[foodItem.x][foodItem.y] = foodItem;
-		int ascendingDiagonal = foodItem.y - foodItem.x;
-		int descendingDiagonal = foodItem.x + foodItem.y;
-		foodItemByAscendingDiagonalMap[ascendingDiagonal].Add(foodItem);
-		foodItemByDescendingDiagonalMap[descendingDiagonal].Add(foodItem);
+		foodItemByAscendingDiagonalMap[foodItem.ascKey].Add(foodItem);
+		try{
+			foodItemArrayByAscendingDiagonalMap[foodItem.ascKey][foodItem.ascArrayIndex] = foodItem;
+		} catch (Exception ex){
+			print("### failed to add ascending array ["+foodItem.ascKey+"]["+foodItem.ascArrayIndex+"] cause : \n" + ex.Message);
+		}
+		foodItemByDescendingDiagonalMap[foodItem.descKey].Add(foodItem);
+		try{
+			foodItemArrayByDescendingDiagonalMap[foodItem.descKey][foodItem.descArrayIndex] = foodItem;
+		} catch (Exception ex){
+			print("### failed to add to descending array ["+foodItem.descKey+"]["+foodItem.descArrayIndex+"] cause : \n" + ex.Message);
+			Debug.Break();
+		}
 	}
 	private void removeFoodItemToLocationMap(FoodItem foodItem, bool removeFromItemArray = true){
 		foodItemByYRowMap[foodItem.y].Remove(foodItem);
 		foodItemByXColumnMap[foodItem.x].Remove(foodItem);
+		foodItemByAscendingDiagonalMap[foodItem.ascKey].Remove(foodItem);
+		foodItemByDescendingDiagonalMap[foodItem.descKey].Remove(foodItem);
 		if (removeFromItemArray){ //TODO reveisit, this is a hack!
 			foodItemArrayByXColumMap[foodItem.x][foodItem.y] = null;
+			foodItemArrayByAscendingDiagonalMap[foodItem.ascKey][foodItem.ascArrayIndex] = null;
+			foodItemArrayByDescendingDiagonalMap[foodItem.descKey][foodItem.descArrayIndex] = null;
 		}
-		int ascendingDiagonal = foodItem.y - foodItem.x;
-		int descendingDiagonal = foodItem.x + foodItem.y;
-		foodItemByAscendingDiagonalMap[ascendingDiagonal].Remove(foodItem);
-		foodItemByDescendingDiagonalMap[descendingDiagonal].Remove(foodItem);
 	}
 	
 	public void shiftRow(int rowY, int direction){ 
@@ -287,28 +347,30 @@ public class SliderGameManager : MonoBehaviour
 		}
 	}
 
-	private void printFoodColumnArrayX(String prefix, int x){
-		String columnArray = "";
-		for (int y = 0; y < gridSize; y++)
-		{
-			if (foodItemArrayByXColumMap[x][y] == null){
-				columnArray += "null\n";	
-			} else {
-				columnArray += foodItemArrayByXColumMap[x][y].id + ":" + foodItemArrayByXColumMap[x][y].type.ToString() + "\n";
-			}
-		}
-		print("### "+prefix+" columnArray["+x+"] : \n" + columnArray);
-	}
-
 	private void highlightScoreable(){
+		print("### called highlightScoreable");
 		allLongestMatchList.Clear();
-		allLongestMatchList.AddRange(highlightColumns());
-		allLongestMatchList.AddRange(highlightAscendingDiagonal());
-		allLongestMatchList.AddRange(highlightDescendingDiagonal());
+		allLongestMatchList.AddRange(highlightColumnsByFoodMenu());
+		//allLongestMatchList.AddRange(highlightColumns());
+		//allLongestMatchList.AddRange(highlightAscendingDiagonal());
+		//allLongestMatchList.AddRange(highlightDescendingDiagonal());
+		printListList("vertical hightlight", allLongestMatchList);
+		//Debug.Break();
 		if (allLongestMatchList.Count > 0){
 			highlightLongestMatch(allLongestMatchList);
 			Invoke("scoreAndMarkForDeletion", secondsDelay);
 		}
+	}
+
+	private List<List<FoodItem>> highlightColumnsByFoodMenu(){
+		List<List<FoodItem>> longestMatchList = new List<List<FoodItem>>();
+		for (int x = 0; x < gridSize; x++){
+			var recipeResult = foodMenu.getRecipeFromFoodItemArray(
+				foodItemArrayByXColumMap[x]
+			);
+			longestMatchList.AddRange(recipeResult.Item2);
+		}
+		return longestMatchList;
 	}
 
 	private List<List<FoodItem>> highlightColumns(){
@@ -511,4 +573,60 @@ public class SliderGameManager : MonoBehaviour
 			foodItemMap[foodId].toggleSelection();
 		}
 	}
+
+	//DEBUG FUNCTION ONLY
+	private void GetVisibleWorldSize()
+	{
+		Camera cam = Camera.main;
+		float height = cam.orthographicSize * 2;
+		float width = height * cam.aspect;
+
+		Debug.Log($"Visible World Size → Width: {width}, Height: {height}");
+	}
+
+	private void printFoodColumnArrayX(String prefix, int x){
+		String columnArray = "";
+		for (int y = 0; y < gridSize; y++)
+		{
+			if (foodItemArrayByXColumMap[x][y] == null){
+				columnArray += "null\n";	
+			} else {
+				columnArray += foodItemArrayByXColumMap[x][y].id + ":" + foodItemArrayByXColumMap[x][y].type.ToString() + "\n";
+			}
+		}
+		print("### "+prefix+" columnArray["+x+"] : \n" + columnArray);
+	}
+
+	private void printFoodItemArrays(String prefix, Dictionary<int, FoodItem[]>foodArrayDictionary){
+		foreach (int key in foodArrayDictionary.Keys)
+		{
+			String columnArray = "";
+			for (int i = 0; i < foodArrayDictionary[key].Length; i++)
+			{
+				if (foodArrayDictionary[key][i] == null){
+					columnArray += "null\n";	
+				} else {
+					columnArray += foodArrayDictionary[key][i].id + ":" + foodArrayDictionary[key][i].type.ToString() + "\n";
+				}
+			}
+			print("### "+prefix+" columnArray["+key+"] : \n" + columnArray);
+		}
+	}
+
+	private void printListList(String prefix, List<List<FoodItem>> foodItemListList){
+		if (foodItemListList.Count == 0){
+			print("### "+prefix+" is empty");
+		} else {
+			foreach (List<FoodItem> foodItemList in foodItemListList)
+			{
+				String columnArray = "";
+				foreach (FoodItem foodItem in foodItemList)
+				{
+					columnArray += foodItem.id + ":" + foodItem.type.ToString() + "\n";
+				}
+				print("### "+prefix+" : \n" + columnArray);
+			}
+		}
+	}
+	//DEBUG FUNCTION ONLY
 }

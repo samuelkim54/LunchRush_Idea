@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.TerrainTools;
 using UnityEngine;
 
 public class FoodItem : MonoBehaviour
@@ -9,6 +10,7 @@ public class FoodItem : MonoBehaviour
 	public String id;
 	public int x; //read/write from gameManager
 	public int y; //red/write from gameManager
+	public int gridSize; //necessary to know the edge of grid
 	public Sprite idleSprite;
 	public Sprite selectedSprite;
 	public Sprite deleteSprite;
@@ -33,6 +35,34 @@ public class FoodItem : MonoBehaviour
 	void OnMouseDown() //this is when clicked over collider (which is the object itself)
 	{
 		toggleSelection();
+	}
+
+	public int ascKey {
+		get { return y-x; }
+	}
+
+	public int ascArrayIndex {
+		get {
+			int index = x; //cover y >= x
+			if (x > y){
+				index = y;
+			}
+			return index;
+		}
+	}
+
+	public int descKey {
+		get { return x+y; }
+	}
+
+	public int descArrayIndex {
+		get {
+			int index = x; //if x+y < gridSize
+			if ((x+y) >= gridSize){
+				index = gridSize-(y+1);
+			}
+			return index;
+		}
 	}
 
 	public void toggleSelection(){
@@ -72,6 +102,8 @@ public class FoodItem : MonoBehaviour
 	}
 
 	public void markForDeletion(){
-		renderer.sprite = deleteSprite;
+		if (renderer != null){ //workaround, TODO figure out why run into null pointer
+			renderer.sprite = deleteSprite;
+		}
 	}
 }
