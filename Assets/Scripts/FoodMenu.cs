@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -15,11 +16,16 @@ public class FoodMenu
 	private Dictionary<FoodMenuEnum, Recipe> recipeMap = new Dictionary<FoodMenuEnum, Recipe>();
 	private Dictionary<FoodMenuEnum, int> recipeLengthMap = new Dictionary<FoodMenuEnum, int>();
 	
+	public List<Recipe> recipeList {
+		get {
+			return recipeMap.Values.ToList();
+		}
+	}
 	public FoodMenu(){
 		//TODO have another class that have a definition of recipe
 		//or maybe a text file that contain definition
 		recipeMap.Add(FoodMenuEnum.EGG_CHEESE_SANDWICH,
-			new Recipe(new HashSet<FoodTypeEnum>{
+			new Recipe(FoodMenuEnum.EGG_CHEESE_SANDWICH, new HashSet<FoodTypeEnum>{
 				FoodTypeEnum.BREAD,
 				FoodTypeEnum.CHEESE,
 				FoodTypeEnum.EGG
@@ -28,7 +34,7 @@ public class FoodMenu
 			recipeMap[FoodMenuEnum.EGG_CHEESE_SANDWICH].ingredientSet.Count);
 
 		recipeMap.Add(FoodMenuEnum.STEAK_EGG_SANDWICH,
-			new Recipe(new HashSet<FoodTypeEnum>{
+			new Recipe(FoodMenuEnum.STEAK_EGG_SANDWICH, new HashSet<FoodTypeEnum>{
 				FoodTypeEnum.BREAD,
 				FoodTypeEnum.STEAK,
 				FoodTypeEnum.EGG
@@ -37,7 +43,7 @@ public class FoodMenu
 			recipeMap[FoodMenuEnum.STEAK_EGG_SANDWICH].ingredientSet.Count);
 
 		recipeMap.Add(FoodMenuEnum.STEAK_EGG_CHEESE_SANDWICH,
-			new Recipe(new HashSet<FoodTypeEnum>{
+			new Recipe(FoodMenuEnum.STEAK_EGG_CHEESE_SANDWICH, new HashSet<FoodTypeEnum>{
 				FoodTypeEnum.BREAD,
 				FoodTypeEnum.CHEESE,
 				FoodTypeEnum.EGG,
@@ -46,17 +52,6 @@ public class FoodMenu
 		recipeLengthMap.Add(FoodMenuEnum.STEAK_EGG_CHEESE_SANDWICH, 
 			recipeMap[FoodMenuEnum.STEAK_EGG_CHEESE_SANDWICH].ingredientSet.Count);
 	}
-	
-	// void Start()
-	// {
-
-	// }
-
-	// // Update is called once per frame
-	// void Update()
-	// {
-		
-	// }
 
 	public (Dictionary<int, FoodMenuEnum>, List<List<FoodItem>>) getRecipeFromFoodItemArray(FoodItem[] foodItemArray){
 		Dictionary<int, FoodMenuEnum> recipeBeginIndexMap = new Dictionary<int, FoodMenuEnum>();
@@ -119,8 +114,9 @@ public class FoodMenu
 	}
 
 	public class Recipe {
+		public FoodMenuEnum foodMenu;
 		public HashSet<FoodTypeEnum> ingredientSet;
-		public Recipe(HashSet<FoodTypeEnum> ingredientSetIn){
+		public Recipe(FoodMenuEnum foodMenu, HashSet<FoodTypeEnum> ingredientSetIn){
 			this.ingredientSet = ingredientSetIn;
 		}
 	}

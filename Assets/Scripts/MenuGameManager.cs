@@ -30,11 +30,15 @@ public class MenuGameManager : MonoBehaviour
 	public GameObject rightButtonPrefab;
 	public ScoreEnum scoreSystemType;
 	public float rightPixelPadding = -50f;
+	public float secondsDelay = 1f;
+	public float orderGeneratorSecondsDelay = 1f;
+	public GameObject orderManagerInstance;
+	private OrderManager orderManager;
 
+	private float orderGeneratorTimer = 2f;
 	private IScore scoreSystem;
 	private FoodMenu foodMenu = new FoodMenu();
 	private float coordinateZ = 5; //doesn't matter
-	public float secondsDelay = 1f;
 	private HashSet<int> columnToReplenishSet = new HashSet<int>();
 
 	private Dictionary<int, GameObject> prefabMap = new Dictionary<int, GameObject>();
@@ -64,6 +68,7 @@ public class MenuGameManager : MonoBehaviour
 		GetVisibleWorldSize();
 		setPrefabMap();
 		initFoodItemLocationMap();
+		initOrderManager();
 		setScoreSystem();
 		computeStartingPoint();
 		generateIntitalGrid();
@@ -72,11 +77,23 @@ public class MenuGameManager : MonoBehaviour
 		//DEBUG
 		printFoodItemArrays("Ascending after start", foodItemArrayByAscendingDiagonalMap);
 		printFoodItemArrays("Descending after start", foodItemArrayByDescendingDiagonalMap);
+
+		print(FoodItemSprite.foodTypeToSpriteMap[FoodTypeEnum.BREAD]);
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
+		orderGeneratorTimer += Time.deltaTime;
+		if (orderGeneratorTimer >= orderGeneratorSecondsDelay){
+			int generateNow = UnityEngine.Random.Range(0, 5);
+			if (generateNow > 1){ //50% chance
+				FoodMenu.Recipe recipe = foodMenu.recipeList[UnityEngine.Random.Range(0, foodMenu.recipeList.Count)];
+				orderManager.addOrderItem(recipe);
+			}
+			orderGeneratorTimer = 0f;
+		}
+
 		if (hasTimeRunOut()){
 			isGameOver = true;
 			gameOverDisplay.enabled = isGameOver;
@@ -148,6 +165,10 @@ public class MenuGameManager : MonoBehaviour
 			{"selectedFoodIdList", selectedFoodIdList}
 		};
 		scoreSystem.setProperties(propertiesMap);
+	}
+
+	private void initOrderManager(){
+		orderManager = orderManagerInstance.GetComponent<OrderManager>();
 	}
 	
 	private void generateIntitalGrid(){
@@ -350,7 +371,7 @@ public class MenuGameManager : MonoBehaviour
 	private void highlightScoreable(){
 		print("### called highlightScoreable");
 		allLongestMatchList.Clear();
-		allLongestMatchList.AddRange(highlightColumnsByFoodMenu());
+		allLongestMatchList.AddRange(highlightColumnsByOrders());
 		//allLongestMatchList.AddRange(highlightColumns());
 		//allLongestMatchList.AddRange(highlightAscendingDiagonal());
 		//allLongestMatchList.AddRange(highlightDescendingDiagonal());
@@ -360,6 +381,14 @@ public class MenuGameManager : MonoBehaviour
 			highlightLongestMatch(allLongestMatchList);
 			Invoke("scoreAndMarkForDeletion", secondsDelay);
 		}
+	}
+
+	private List<List<FoodItem>> highlightColumnsByOrders(){
+		List<List<FoodItem>> longestMatchList = new List<List<FoodItem>>();
+		for (int x = 0; x < gridSize; x++){
+			longestMatchList.AddRange(orderManager.getRecipeFromFoodItemArray(foodItemArrayByXColumMap[x]));
+		}
+		return longestMatchList;
 	}
 
 	private List<List<FoodItem>> highlightColumnsByFoodMenu(){
@@ -458,6 +487,7 @@ public class MenuGameManager : MonoBehaviour
 		}
 		displayScore();
 		Invoke("destroyMatchedItem", secondsDelay);
+		Invoke("destroyFulfilledAndReorderOrder", secondsDelay);
 	}
 
 	private void destroyMatchedItem(){ //TODO refactor
@@ -480,6 +510,11 @@ public class MenuGameManager : MonoBehaviour
 		}
 
 		Invoke("replenishFoodItem", secondsDelay);
+	}
+
+	private void destroyFulfilledAndReorderOrder(){
+		orderManager.destroyFulfilledOrders();
+		orderManager.reorderOrders();
 	}
 
 	private void replenishFoodItem(){
@@ -535,7 +570,7 @@ public class MenuGameManager : MonoBehaviour
 	private void computeStartingPoint(){
 		float y = -xySpan/2f;
 		startingPoint.y = y;
-		startingPoint.x = pixelsToWorldUnits(rightPixelPadding);
+		startingPoint.x = pixelsToWorldUnits(rightPixelPadding); //TODO centering
 	}
 
 	private Vector3 convertGridToVector3Position(int gridX, int gridY){
